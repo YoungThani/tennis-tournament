@@ -1,0 +1,73 @@
+// This file describes our database tables ("models") and how they connect.
+// After changing it, run: npx prisma migrate dev --name <what-changed>
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id        Int      @id @default(autoincrement())
+  name      String
+  country   String
+  ranking   Int? // "?" means optional: unranked players have no ranking
+  age       Int?
+  plays     String? // "right" or "left" handed
+  createdAt DateTime @default(now())
+
+  coaches Coach[] // many-to-many: a player can have several coaches
+
+  // A player can appear in a match as player 1, player 2, or the winner.
+  // Each link needs its own name so Prisma can tell them apart.
+  matchesAsPlayer1 Match[] @relation("Player1")
+  matchesAsPlayer2 Match[] @relation("Player2")
+  matchesWon       Match[] @relation("Winner")
+}
+
+model Coach {
+  id        Int      @id @default(autoincrement())
+  name      String
+  country   String?
+  createdAt DateTime @default(now())
+
+  players Player[] // many-to-many: a coach can have several players
+}
+
+model Match {
+  id          Int      @id @default(autoincrement())
+  round       String // e.g. "Round 1", "Quarterfinal", "Final"
+  court       String // e.g. "Centre Court", "Court 2"
+  scheduledAt DateTime
+  status      String   @default("scheduled") // "scheduled", "in_progress" or "completed"
+  bestOf      Int      @default(3) // best of 3 or 5 sets
+  createdAt   DateTime @default(now())
+
+  player1Id Int
+  player1   Player  @relation("Player1", fields: [player1Id], references: [id])
+  player2Id Int
+  player2   Player  @relation("Player2", fields: [player2Id], references: [id])
+  winnerId  Int?
+  winner    Player? @relation("Winner", fields: [winnerId], references: [id])
+
+  // Points in the current game (0, 1, 2, 3... shown as 0, 15, 30, 40)
+  player1Points Int @default(0)
+  player2Points Int @default(0)
+
+  sets SetScore[] // games won in each set
+}
+
+model SetScore {
+  id           Int @id @default(autoincrement())
+  setNumber    Int // 1, 2, 3...
+  player1Games Int @default(0)
+  player2Games Int @default(0)
+
+  matchId Int
+  match   Match @relation(fields: [matchId], references: [id], onDelete: Cascade) // delete a match → its sets go too
+
+  @@unique([matchId, setNumber]) // a match can't have two "set 1" rows
+}
