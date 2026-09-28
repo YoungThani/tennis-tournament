@@ -30,6 +30,18 @@ app.use('/api/coaches', require('./routes/coaches'));
 app.use('/api/matches', require('./routes/matches'));
 app.use('/api/schedule', require('./routes/schedule'));
 
+// Any other /api address doesn't exist
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: 'API route not found' });
+});
+
+// If a route crashes unexpectedly, log the details for us and send a simple JSON error to the browser.
+// (Express knows this is the error handler because it takes 4 arguments.)
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: 'Something went wrong on the server' });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
