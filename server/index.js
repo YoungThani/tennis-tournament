@@ -24,6 +24,10 @@ app.get('/api/health', async (req, res) => {
   });
 });
 
+// API routes
+app.use('/api/players', require('./routes/players'));
+app.use('/api/coaches', require('./routes/coaches'));
+
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
