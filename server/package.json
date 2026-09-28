@@ -1,0 +1,13 @@
+{
+  "name": "tennis-tournament-server",
+  "version": "1.0.0",
+  "description": "API for the tennis tournament app",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
