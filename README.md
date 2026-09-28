@@ -3,7 +3,7 @@
 A small web app for running a tennis tournament: players, coaches, a match schedule, and live point-by-point scoring.
 
 - **Backend:** Node.js + Express (`/server`)
-- **Database:** Prisma ORM
+- **Database:** PostgreSQL (hosted free on [Neon](https://neon.tech)) with the Prisma ORM
 - **Frontend:** plain HTML, CSS and JavaScript (`/client`), served by Express
 
 ## Run it on your computer
@@ -12,7 +12,7 @@ You need [Node.js](https://nodejs.org) 20 or newer.
 
 ```bash
 cd server
-cp .env.example .env     # database settings
+cp .env.example .env     # then put your Postgres connection string in .env
 npm install
 npm run build            # set up Prisma and create the database tables
 npm run dev              # start the server (restarts when you save a file)
