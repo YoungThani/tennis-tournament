@@ -3,22 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tennis Tournament</title>
+  <title>Schedule · Tennis Tournament</title>
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <h1>🎾 Tennis Tournament</h1>
-  <p>API status: <span id="status">checking...</span></p>
+  <header>
+    <nav class="nav">
+      <a class="logo" href="/">🎾 Tennis Tournament</a>
+      <div class="nav-links">
+        <a href="/" class="active">Schedule</a>
+        <a href="/players.html">Players</a>
+        <a href="/coaches.html">Coaches</a>
+        <a href="/matches.html">Matches</a>
+      </div>
+    </nav>
+  </header>
 
-  <script>
-    // Call our own API and show the result on the page
-    fetch('/api/health')
-      .then((res) => res.json())
-      .then((data) => {
-        document.getElementById('status').textContent = data.status;
-      })
-      .catch(() => {
-        document.getElementById('status').textContent = 'unreachable';
-      });
-  </script>
+  <main>
+    <h1>Schedule</h1>
+
+    <section id="live-section" hidden>
+      <h2>🔴 Live now</h2>
+      <div id="live"></div>
+    </section>
+
+    <section>
+      <h2>Upcoming</h2>
+      <div id="upcoming"><p class="muted">Loading...</p></div>
+    </section>
+
+    <section>
+      <h2>Results</h2>
+      <div id="past"></div>
+    </section>
+  </main>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/schedule.js"></script>
 </body>
 </html>

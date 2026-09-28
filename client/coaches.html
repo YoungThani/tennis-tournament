@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coaches · Tennis Tournament</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <a class="logo" href="/">🎾 Tennis Tournament</a>
+      <div class="nav-links">
+        <a href="/">Schedule</a>
+        <a href="/players.html">Players</a>
+        <a href="/coaches.html" class="active">Coaches</a>
+        <a href="/matches.html">Matches</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Coaches</h1>
+
+    <div class="card">
+      <h2 id="form-title" class="form-title">Add a coach</h2>
+      <form id="coach-form">
+        <label>Name *
+          <input name="name" required placeholder="e.g. Tomasz Wiktorowski">
+        </label>
+        <label>Country
+          <input name="country" placeholder="e.g. Poland">
+        </label>
+        <div class="form-buttons">
+          <button type="submit" id="submit-button">Add coach</button>
+          <button type="button" id="cancel-button" class="secondary" hidden>Cancel</button>
+        </div>
+      </form>
+      <p id="form-error" class="error"></p>
+    </div>
+
+    <div id="coaches-list">
+      <p class="muted">Loading...</p>
+    </div>
+  </main>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/coaches.js"></script>
+</body>
+</html>
