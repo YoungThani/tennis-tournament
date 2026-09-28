@@ -1,5 +1,6 @@
 const express = require('express');
 const prisma = require('../db');
+const { scoreFromLog, withScoreboard } = require('../scoring');
 
 const router = express.Router();
 
@@ -47,7 +48,7 @@ router.get('/', async (req, res) => {
     orderBy: { scheduledAt: 'asc' },
     include: matchDetails,
   });
-  res.json(matches);
+  res.json(matches.map(withScoreboard));
 });
 
 // GET /api/matches/:id → one match
@@ -59,7 +60,7 @@ router.get('/:id', async (req, res) => {
   if (!match) {
     return res.status(404).json({ error: 'Match not found' });
   }
-  res.json(match);
+  res.json(withScoreboard(match));
 });
 
 // POST /api/matches → create a match
@@ -121,6 +122,71 @@ router.delete('/:id', async (req, res) => {
     }
     throw err;
   }
+});
+
+// ---------- Live scoring ----------
+
+// Recalculate the score from the point log and save everything:
+// the log, the current game's points, the set scores, the status and the winner.
+async function saveScore(match, pointLog) {
+  const score = scoreFromLog(pointLog, match.bestOf);
+
+  let winnerId = null;
+  if (score.winner === 1) winnerId = match.player1Id;
+  if (score.winner === 2) winnerId = match.player2Id;
+
+  const updated = await prisma.match.update({
+    where: { id: match.id },
+    data: {
+      pointLog,
+      player1Points: score.points[0],
+      player2Points: score.points[1],
+      winnerId,
+      status: winnerId ? 'completed' : 'in_progress',
+      // Replace the old set rows with the newly calculated ones
+      sets: {
+        deleteMany: {},
+        create: score.sets.map(([p1Games, p2Games], i) => ({
+          setNumber: i + 1,
+          player1Games: p1Games,
+          player2Games: p2Games,
+        })),
+      },
+    },
+    include: matchDetails,
+  });
+  return withScoreboard(updated);
+}
+
+// POST /api/matches/:id/point  body: { "player": 1 } → player 1 won the point
+router.post('/:id/point', async (req, res) => {
+  const player = req.body.player;
+  if (player !== 1 && player !== 2) {
+    return res.status(400).json({ error: 'player must be 1 or 2' });
+  }
+
+  const match = await prisma.match.findUnique({ where: { id: Number(req.params.id) } });
+  if (!match) {
+    return res.status(404).json({ error: 'Match not found' });
+  }
+  if (match.status === 'completed') {
+    return res.status(400).json({ error: 'This match is already finished' });
+  }
+
+  res.json(await saveScore(match, match.pointLog + player));
+});
+
+// POST /api/matches/:id/undo → take back the last point
+router.post('/:id/undo', async (req, res) => {
+  const match = await prisma.match.findUnique({ where: { id: Number(req.params.id) } });
+  if (!match) {
+    return res.status(404).json({ error: 'Match not found' });
+  }
+  if (match.pointLog === '') {
+    return res.status(400).json({ error: 'No points to undo' });
+  }
+
+  res.json(await saveScore(match, match.pointLog.slice(0, -1)));
 });
 
 module.exports = router;

@@ -53,6 +53,10 @@ model Match {
   winnerId  Int?
   winner    Player? @relation("Winner", fields: [winnerId], references: [id])
 
+  // Who won each point, in order, e.g. "1121221". The score is calculated from this (see scoring.js),
+  // so undo is just "remove the last character".
+  pointLog String @default("")
+
   // Points in the current game (0, 1, 2, 3... shown as 0, 15, 30, 40)
   player1Points Int @default(0)
   player2Points Int @default(0)

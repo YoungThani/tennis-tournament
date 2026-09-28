@@ -50,6 +50,7 @@ function showMatches() {
       <td><strong>${escapeHtml(m.player1.name)}</strong> vs <strong>${escapeHtml(m.player2.name)}</strong></td>
       <td><span class="badge ${m.status === 'in_progress' ? 'live' : ''} ${m.status === 'completed' ? 'done' : ''}">${STATUS_LABELS[m.status]}</span></td>
       <td class="actions">
+        <a class="button-link" href="/score.html?id=${m.id}">Score</a>
         <button class="small secondary" onclick="startEdit(${m.id})">Edit</button>
         <button class="small danger" onclick="deleteMatch(${m.id})">Delete</button>
       </td>

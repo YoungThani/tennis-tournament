@@ -1,5 +1,6 @@
 const express = require('express');
 const prisma = require('../db');
+const { withScoreboard } = require('../scoring');
 
 const router = express.Router();
 
@@ -34,7 +35,11 @@ router.get('/', async (req, res) => {
     include: matchDetails,
   });
 
-  res.json({ live, upcoming, past });
+  res.json({
+    live: live.map(withScoreboard),
+    upcoming: upcoming.map(withScoreboard),
+    past: past.map(withScoreboard),
+  });
 });
 
 module.exports = router;

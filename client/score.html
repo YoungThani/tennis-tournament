@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Score · Tennis Tournament</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <nav class="nav">
+      <a class="logo" href="/">🎾 Tennis Tournament</a>
+      <div class="nav-links">
+        <a href="/">Schedule</a>
+        <a href="/players.html">Players</a>
+        <a href="/coaches.html">Coaches</a>
+        <a href="/matches.html">Matches</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <p><a href="/" class="back-link">← Back to schedule</a></p>
+
+    <div id="scoreboard">
+      <p class="muted">Loading...</p>
+    </div>
+
+    <div id="umpire-controls" class="card" hidden>
+      <h2 class="form-title">Umpire controls</h2>
+      <div class="point-buttons">
+        <button id="point1" class="point-button">Point</button>
+        <button id="point2" class="point-button">Point</button>
+      </div>
+      <button id="undo" class="secondary">↶ Undo last point</button>
+      <p id="score-error" class="error"></p>
+    </div>
+  </main>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/score.js"></script>
+</body>
+</html>

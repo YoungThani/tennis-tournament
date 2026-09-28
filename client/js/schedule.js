@@ -1,13 +1,15 @@
 // Schedule page: shows live, upcoming and past matches.
 
 // Build the HTML for one player's row inside a match card
-function playerRow(player, games, isWinner) {
+// (pointLabel is the current game's score, e.g. "30", only shown for live matches)
+function playerRow(player, games, isWinner, pointLabel) {
   const scores = games.map((g) => `<span class="set">${g}</span>`).join('');
+  const points = pointLabel !== undefined ? `<span class="set live-points">${pointLabel}</span>` : '';
   return `
     <div class="player-row ${isWinner ? 'winner' : ''}">
       <span class="player-name">${escapeHtml(player.name)}</span>
       <span class="player-country muted">${escapeHtml(player.country)}</span>
-      <span class="sets">${scores}</span>
+      <span class="sets">${scores}${points}</span>
     </div>
   `;
 }
@@ -23,16 +25,22 @@ function matchCard(match) {
     completed: '<span class="badge done">Final</span>',
   };
 
+  // Live matches also show the current game's points
+  const live = match.status === 'in_progress';
+  const p1Points = live ? match.pointLabels[0] : undefined;
+  const p2Points = live ? match.pointLabels[1] : undefined;
+
+  // The whole card is a link to the live score page
   return `
-    <div class="card match-card">
+    <a class="card match-card" href="/score.html?id=${match.id}">
       <div class="match-info">
         <span>${escapeHtml(match.round)} · ${escapeHtml(match.court)}</span>
         ${badges[match.status]}
       </div>
-      ${playerRow(match.player1, p1Games, match.winnerId === match.player1Id)}
-      ${playerRow(match.player2, p2Games, match.winnerId === match.player2Id)}
+      ${playerRow(match.player1, p1Games, match.winnerId === match.player1Id, p1Points)}
+      ${playerRow(match.player2, p2Games, match.winnerId === match.player2Id, p2Points)}
       <div class="match-time muted">${formatDate(match.scheduledAt)}</div>
-    </div>
+    </a>
   `;
 }
 
@@ -62,3 +70,6 @@ async function loadSchedule() {
 }
 
 loadSchedule();
+
+// Refresh every 5 seconds so live scores update on their own
+setInterval(loadSchedule, 5000);

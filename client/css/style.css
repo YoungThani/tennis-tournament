@@ -111,6 +111,25 @@ h2 {
 }
 
 /* ---------- Match cards ---------- */
+a.match-card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+a.match-card:hover {
+  border-color: var(--green);
+}
+
+.live-points {
+  background: var(--green);
+  color: var(--ball);
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 0 6px;
+  min-width: 2.5em;
+}
+
 .match-info {
   display: flex;
   justify-content: space-between;
@@ -217,6 +236,66 @@ select {
 
 .card .error:empty {
   display: none; /* hide the error line when there's no error */
+}
+
+/* ---------- Live score page ---------- */
+.back-link {
+  color: var(--green);
+  text-decoration: none;
+}
+
+.scoreboard {
+  font-size: 1.25rem;
+}
+
+.scoreboard th {
+  text-align: center;
+}
+
+.scoreboard .sb-name {
+  width: 100%;
+  font-weight: 600;
+}
+
+.scoreboard .sb-name .muted {
+  font-size: 0.85rem;
+  font-weight: 400;
+  margin-left: 6px;
+}
+
+.scoreboard .games {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.scoreboard .points {
+  text-align: center;
+  font-weight: 700;
+  background: var(--green);
+  color: var(--ball);
+  min-width: 3em;
+}
+
+.scoreboard tr.winner {
+  font-weight: 700;
+}
+
+.point-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.point-button {
+  padding: 24px 12px; /* big and easy to tap */
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* ---------- Coach cards ---------- */
@@ -326,6 +405,18 @@ button.danger {
   background: transparent;
   color: var(--red);
   border: 1px solid var(--border);
+}
+
+/* A link that looks like a small green button */
+.button-link {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  background: var(--green);
+  color: white;
+  text-decoration: none;
+  margin-right: 4px;
 }
 
 button.small {
