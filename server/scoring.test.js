@@ -3,7 +3,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert');
-const { scoreFromLog, pointLabels } = require('./scoring');
+const { scoreFromLog, pointLabels, currentServer, bigPoint } = require('./scoring');
 
 // Helper: "1".repeat(4) = player 1 wins 4 points in a row = one game
 const game1 = '1111';
@@ -82,4 +82,57 @@ test('points after the match is over are ignored', () => {
   const score = scoreFromLog(set2 + set2 + '1111', 3);
   assert.strictEqual(score.winner, 2);
   assert.deepStrictEqual(score.sets, [[0, 6], [0, 6]]);
+});
+
+// ---------- Serving ----------
+
+test('serve switches every game', () => {
+  assert.strictEqual(currentServer(scoreFromLog('', 3, 1)), 1);
+  assert.strictEqual(currentServer(scoreFromLog(game1, 3, 1)), 2);
+  assert.strictEqual(currentServer(scoreFromLog(game1 + game2, 3, 1)), 1);
+  assert.strictEqual(currentServer(scoreFromLog('', 3, 2)), 2); // player 2 can serve first
+});
+
+test('tiebreak serve: A, then B B, A A, B B...', () => {
+  const sixAll = (game1 + game2).repeat(6); // 12 games, so player 1 serves first in the tiebreak
+  const servers = [];
+  for (let i = 0; i < 7; i++) {
+    servers.push(currentServer(scoreFromLog(sixAll + '1'.repeat(i), 3, 1)));
+  }
+  assert.deepStrictEqual(servers, [1, 2, 2, 1, 1, 2, 2]);
+});
+
+test('after a tiebreak, the player who received first serves', () => {
+  const sixAll = (game1 + game2).repeat(6);
+  const afterTiebreak = scoreFromLog(sixAll + '1111111', 3, 1); // player 1 served first in the tiebreak
+  assert.deepStrictEqual(afterTiebreak.sets, [[7, 6], [0, 0]]);
+  assert.strictEqual(currentServer(afterTiebreak), 2);
+});
+
+test('no server once the match is over', () => {
+  assert.strictEqual(currentServer(scoreFromLog(game1.repeat(12), 3)), null);
+});
+
+// ---------- Big points ----------
+
+test('normal point: nothing special', () => {
+  assert.strictEqual(bigPoint(scoreFromLog('1', 3)), null);
+});
+
+test('break point: the receiver is one point from winning the game', () => {
+  // Player 1 serves the first game; player 2 leads 40-0
+  assert.deepStrictEqual(bigPoint(scoreFromLog('222', 3, 1)), { type: 'break point', player: 2 });
+  // The server leading 40-0 is just a game point, not a big one
+  assert.strictEqual(bigPoint(scoreFromLog('111', 3, 1)), null);
+});
+
+test('set point', () => {
+  const fiveLove = game1.repeat(5); // 5-0 to player 1
+  assert.deepStrictEqual(bigPoint(scoreFromLog(fiveLove + '111', 3)), { type: 'set point', player: 1 });
+});
+
+test('match point beats set point', () => {
+  const firstSet = game1.repeat(6);
+  const fiveLove = game1.repeat(5);
+  assert.deepStrictEqual(bigPoint(scoreFromLog(firstSet + fiveLove + '111', 3)), { type: 'match point', player: 1 });
 });

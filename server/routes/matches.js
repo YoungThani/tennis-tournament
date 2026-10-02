@@ -23,6 +23,7 @@ function matchData(body) {
     scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : undefined,
     status: body.status,
     bestOf: body.bestOf,
+    firstServer: body.firstServer,
     player1Id: body.player1Id,
     player2Id: body.player2Id,
   };
@@ -38,6 +39,9 @@ function checkMatch(data) {
   }
   if (data.player1Id && data.player1Id === data.player2Id) {
     return 'A player cannot play against themselves';
+  }
+  if (data.firstServer !== undefined && data.firstServer !== 1 && data.firstServer !== 2) {
+    return 'firstServer must be 1 or 2';
   }
   return null;
 }
@@ -129,7 +133,7 @@ router.delete('/:id', async (req, res) => {
 // Recalculate the score from the point log and save everything:
 // the log, the current game's points, the set scores, the status and the winner.
 async function saveScore(match, pointLog) {
-  const score = scoreFromLog(pointLog, match.bestOf);
+  const score = scoreFromLog(pointLog, match.bestOf, match.firstServer);
 
   let winnerId = null;
   if (score.winner === 1) winnerId = match.player1Id;

@@ -30,6 +30,37 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+// ---------- Light / dark theme toggle ----------
+// The saved theme is applied by a tiny script in each page's <head> (so there's no flash).
+// Here we add the ☀️ / 🌙 button to the nav bar and handle clicks.
+function setupThemeToggle() {
+  const button = document.createElement('button');
+  button.className = 'theme-toggle';
+
+  function showIcon() {
+    const isDark = document.documentElement.dataset.theme !== 'light';
+    button.textContent = isDark ? '☀️' : '🌙'; // show the theme you'd switch TO
+    button.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+    button.setAttribute('aria-label', button.title);
+  }
+
+  button.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+    document.documentElement.dataset.theme = next;
+    try {
+      localStorage.setItem('theme', next); // remember the choice for next time
+    } catch (e) {
+      // private browsing can block storage; the toggle still works for this page
+    }
+    showIcon();
+  });
+
+  showIcon();
+  document.querySelector('.nav').appendChild(button);
+}
+
+setupThemeToggle();
+
 // Turn "2026-10-03T12:30:00.000Z" into something readable in the user's own timezone, e.g. "Sat 3 Oct, 6:00 pm"
 function formatDate(isoString) {
   return new Date(isoString).toLocaleString(undefined, {

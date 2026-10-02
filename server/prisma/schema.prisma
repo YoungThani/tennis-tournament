@@ -57,6 +57,9 @@ model Match {
   // so undo is just "remove the last character".
   pointLog String @default("")
 
+  // Who serves the first game: 1 or 2. Who serves after that is worked out from the point log.
+  firstServer Int @default(1)
+
   // Points in the current game (0, 1, 2, 3... shown as 0, 15, 30, 40)
   player1Points Int @default(0)
   player2Points Int @default(0)

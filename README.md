@@ -20,6 +20,16 @@ npm run dev              # start the server (restarts when you save a file)
 
 Then open http://localhost:3000
 
+### Development vs live database
+
+The database is on Neon, which has **branches** (like git, but for data):
+
+- **`main`** branch → used by the live site. Its connection string is set in Render's environment variables.
+- **`dev`** branch → used on your computer. Its connection string goes in `server/.env`.
+
+Test freely on `dev` without touching live data. Schema changes are made locally with `npx prisma migrate dev`,
+then applied to `main` automatically by Render's build (`prisma migrate deploy`) when you push.
+
 ## Useful commands (run inside `/server`)
 
 | Command | What it does |

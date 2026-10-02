@@ -4,12 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Live Score · Tennis Tournament</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="/css/style.css">
+  <!-- Apply the saved light/dark choice before the page draws, so it doesn't flash -->
+  <script>
+    try { document.documentElement.dataset.theme = localStorage.getItem('theme') || 'dark'; } catch (e) {}
+  </script>
 </head>
 <body>
   <header>
     <nav class="nav">
-      <a class="logo" href="/">🎾 Tennis Tournament</a>
+      <a class="logo" href="/">🎾 Tennis <span>Tour</span></a>
       <div class="nav-links">
         <a href="/">Schedule</a>
         <a href="/players.html">Players</a>
@@ -28,6 +35,13 @@
 
     <div id="umpire-controls" class="card" hidden>
       <h2 class="form-title">Umpire controls</h2>
+
+      <div id="serve-choice" class="serve-choice" hidden>
+        <span class="muted">Who serves first?</span>
+        <button id="serve1" class="small">Player 1</button>
+        <button id="serve2" class="small secondary">Player 2</button>
+      </div>
+
       <div class="point-buttons">
         <button id="point1" class="point-button">Point</button>
         <button id="point2" class="point-button">Point</button>

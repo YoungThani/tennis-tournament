@@ -7,55 +7,80 @@ const errorLine = document.getElementById('score-error');
 
 let match = null; // the latest version of the match from the server
 
-// Build the scoreboard HTML: one row per player, one column per set, plus current points
-function showScoreboard() {
-  const setHeaders = match.sets.map((s) => `<th>Set ${s.setNumber}</th>`).join('');
+// Build one player's row of the broadcast scoreboard
+function boardRow(player, playerNumber, sets) {
+  const isWinner = match.winnerId === player.id;
+  const isServing = match.server === playerNumber;
   const isLive = match.status === 'in_progress';
 
-  function row(player, playerNumber) {
-    const games = match.sets.map((s) => `<td class="games">${playerNumber === 1 ? s.player1Games : s.player2Games}</td>`).join('');
-    const isWinner = match.winnerId === player.id;
-    return `
-      <tr class="${isWinner ? 'winner' : ''}">
-        <td class="sb-name">
-          ${escapeHtml(player.name)}${isWinner ? ' ✓' : ''}
-          <span class="muted">${escapeHtml(player.country)}</span>
-        </td>
-        ${games}
-        ${isLive ? `<td class="points">${match.pointLabels[playerNumber - 1]}</td>` : ''}
-      </tr>
-    `;
-  }
+  const setBoxes = sets.map((set, i) => {
+    const mine = playerNumber === 1 ? set.player1Games : set.player2Games;
+    const theirs = playerNumber === 1 ? set.player2Games : set.player1Games;
+    // A set is finished if it's not the current one (or the match is over)
+    const finished = i < sets.length - 1 || match.status === 'completed';
+    const wonSet = finished && mine > theirs;
+    return `<span class="bc-set ${finished ? (wonSet ? 'won' : 'lost') : 'current'}">${mine}</span>`;
+  }).join('');
 
-  let statusText;
-  if (match.status === 'scheduled') {
-    statusText = 'Not started. The first point starts the match.';
-  } else if (match.status === 'in_progress') {
-    statusText = `<span class="badge live">● Live${match.tiebreak ? ' · Tiebreak' : ''}</span>`;
-  } else {
-    // (a match marked "Final" by hand on the Matches page may have no winner)
-    statusText = `<span class="badge done">Final</span> ${match.winner ? escapeHtml(match.winner.name) + ' wins' : ''}`;
-  }
-
-  document.getElementById('scoreboard').innerHTML = `
-    <div class="card">
-      <div class="match-info">
-        <span>${escapeHtml(match.round)} · ${escapeHtml(match.court)} · Best of ${match.bestOf}</span>
-        <span>${statusText}</span>
-      </div>
-      <div class="table-wrap">
-        <table class="scoreboard">
-          <thead>
-            <tr><th></th>${setHeaders}${isLive ? '<th>Points</th>' : ''}</tr>
-          </thead>
-          <tbody>
-            ${row(match.player1, 1)}
-            ${row(match.player2, 2)}
-          </tbody>
-        </table>
-      </div>
+  return `
+    <div class="bc-row ${isWinner ? 'winner' : ''}">
+      <span class="bc-serve ${isServing ? 'on' : ''}" title="${isServing ? 'Serving' : ''}"></span>
+      <span class="bc-name">
+        ${escapeHtml(player.name)}${isWinner ? ' <span class="bc-check">✓</span>' : ''}
+        <small>${escapeHtml(player.country)}</small>
+      </span>
+      ${setBoxes}
+      ${isLive ? `<span class="bc-points">${match.pointLabels[playerNumber - 1]}</span>` : ''}
     </div>
   `;
+}
+
+// The strip under the scoreboard: MATCH POINT / SET POINT / BREAK POINT / TIEBREAK / DEUCE / ADVANTAGE
+function situationStrip() {
+  if (match.status !== 'in_progress') return '';
+  const nameOf = (n) => (n === 1 ? match.player1.name : match.player2.name);
+
+  if (match.bigPoint) {
+    return `<div class="bc-strip big">${match.bigPoint.type} · ${escapeHtml(nameOf(match.bigPoint.player))}</div>`;
+  }
+  if (match.tiebreak) return '<div class="bc-strip">Tiebreak</div>';
+
+  const [a, b] = match.pointLabels;
+  if (a === '40' && b === '40') return '<div class="bc-strip">Deuce</div>';
+  if (a === 'AD') return `<div class="bc-strip">Advantage · ${escapeHtml(nameOf(1))}</div>`;
+  if (b === 'AD') return `<div class="bc-strip">Advantage · ${escapeHtml(nameOf(2))}</div>`;
+  return '';
+}
+
+function showScoreboard() {
+  // Before the first point there are no sets yet, so show an empty "0-0" first set
+  const sets = match.sets.length ? match.sets : [{ setNumber: 1, player1Games: 0, player2Games: 0 }];
+
+  let status;
+  if (match.status === 'scheduled') status = '<span class="badge">Not started</span>';
+  else if (match.status === 'in_progress') status = '<span class="badge live">● Live</span>';
+  else status = '<span class="badge done">Final</span>';
+
+  document.getElementById('scoreboard').innerHTML = `
+    <div class="broadcast">
+      <div class="bc-top">
+        <span>${escapeHtml(match.round)} · ${escapeHtml(match.court)} · Best of ${match.bestOf}</span>
+        ${status}
+      </div>
+      ${boardRow(match.player1, 1, sets)}
+      ${boardRow(match.player2, 2, sets)}
+      ${situationStrip()}
+    </div>
+    <p class="muted bc-time">${formatDate(match.scheduledAt)}</p>
+  `;
+
+  // "Who serves first?" is only asked before the first point
+  const serveChoice = document.getElementById('serve-choice');
+  serveChoice.hidden = match.pointLog !== '' || match.status === 'completed';
+  document.getElementById('serve1').textContent = match.player1.name;
+  document.getElementById('serve2').textContent = match.player2.name;
+  document.getElementById('serve1').classList.toggle('secondary', match.firstServer !== 1);
+  document.getElementById('serve2').classList.toggle('secondary', match.firstServer !== 2);
 
   // Umpire buttons: named after the players, and switched off once the match is over
   controls.hidden = false;
@@ -63,6 +88,8 @@ function showScoreboard() {
   document.getElementById('point2').textContent = `Point ${match.player2.name}`;
   document.getElementById('point1').disabled = match.status === 'completed';
   document.getElementById('point2').disabled = match.status === 'completed';
+  document.getElementById('serve1').disabled = false;
+  document.getElementById('serve2').disabled = false;
   document.getElementById('undo').disabled = match.pointLog === '';
 }
 
@@ -91,6 +118,19 @@ async function sendScore(url, body) {
 document.getElementById('point1').addEventListener('click', () => sendScore(`/api/matches/${matchId}/point`, { player: 1 }));
 document.getElementById('point2').addEventListener('click', () => sendScore(`/api/matches/${matchId}/point`, { player: 2 }));
 document.getElementById('undo').addEventListener('click', () => sendScore(`/api/matches/${matchId}/undo`));
+
+// Choose who serves first (before the first point)
+async function chooseServer(player) {
+  errorLine.textContent = '';
+  try {
+    await api('PUT', `/api/matches/${matchId}`, { firstServer: player });
+    await loadMatch();
+  } catch (err) {
+    errorLine.textContent = err.message;
+  }
+}
+document.getElementById('serve1').addEventListener('click', () => chooseServer(1));
+document.getElementById('serve2').addEventListener('click', () => chooseServer(2));
 
 loadMatch();
 

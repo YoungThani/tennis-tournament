@@ -2,11 +2,11 @@
 
 // Build the HTML for one player's row inside a match card
 // (pointLabel is the current game's score, e.g. "30", only shown for live matches)
-function playerRow(player, games, isWinner, pointLabel) {
+function playerRow(player, games, isWinner, pointLabel, isServing) {
   const scores = games.map((g) => `<span class="set">${g}</span>`).join('');
   const points = pointLabel !== undefined ? `<span class="set live-points">${pointLabel}</span>` : '';
   return `
-    <div class="player-row ${isWinner ? 'winner' : ''}">
+    <div class="player-row ${isWinner ? 'winner' : ''} ${isServing ? 'serving' : ''}">
       <span class="player-name">${escapeHtml(player.name)}</span>
       <span class="player-country muted">${escapeHtml(player.country)}</span>
       <span class="sets">${scores}${points}</span>
@@ -35,10 +35,13 @@ function matchCard(match) {
     <a class="card match-card" href="/score.html?id=${match.id}">
       <div class="match-info">
         <span>${escapeHtml(match.round)} · ${escapeHtml(match.court)}</span>
-        ${badges[match.status]}
+        <span>
+          ${live && match.bigPoint ? `<span class="badge big">${match.bigPoint.type}</span>` : ''}
+          ${badges[match.status]}
+        </span>
       </div>
-      ${playerRow(match.player1, p1Games, match.winnerId === match.player1Id, p1Points)}
-      ${playerRow(match.player2, p2Games, match.winnerId === match.player2Id, p2Points)}
+      ${playerRow(match.player1, p1Games, match.winnerId === match.player1Id, p1Points, live && match.server === 1)}
+      ${playerRow(match.player2, p2Games, match.winnerId === match.player2Id, p2Points, live && match.server === 2)}
       <div class="match-time muted">${formatDate(match.scheduledAt)}</div>
     </a>
   `;

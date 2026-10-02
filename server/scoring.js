@@ -7,10 +7,11 @@
 //     sets: [[6, 4], [2, 1]],  // games in each set: [player 1, player 2]. The last one is the current set.
 //     points: [2, 1],          // points in the current game (or tiebreak): [player 1, player 2]
 //     winner: null,            // 1 or 2 once the match is over
+//     server: 1,               // who serves this game (in a tiebreak: who served its first point)
 //   }
 
-function newScore(bestOf) {
-  return { bestOf, sets: [[0, 0]], points: [0, 0], winner: null };
+function newScore(bestOf, firstServer = 1) {
+  return { bestOf, sets: [[0, 0]], points: [0, 0], winner: null, server: firstServer };
 }
 
 function currentSet(score) {
@@ -48,9 +49,11 @@ function addPoint(score, player) {
   const wonGame = s.points[me] >= pointsNeeded && s.points[me] - s.points[them] >= 2;
   if (!wonGame) return s;
 
-  // Game won: add it to the current set and reset the points
+  // Game won: add it to the current set, reset the points, and the other player serves next.
+  // (A tiebreak counts as one game, so after it the player who received first serves.)
   currentSet(s)[me] += 1;
   s.points = [0, 0];
+  s.server = 3 - s.server; // 1 → 2, 2 → 1
 
   if (!setWinner(currentSet(s))) return s;
 
@@ -66,8 +69,8 @@ function addPoint(score, player) {
 }
 
 // Rebuild the whole score from the list of point winners, e.g. "1121..."
-function scoreFromLog(pointLog, bestOf) {
-  let score = newScore(bestOf);
+function scoreFromLog(pointLog, bestOf, firstServer = 1) {
+  let score = newScore(bestOf, firstServer);
   for (const player of pointLog) {
     score = addPoint(score, Number(player));
   }
@@ -88,11 +91,58 @@ function pointLabels(score) {
   return [names[a], names[b]];
 }
 
-// Add scoreboard info to a match from the database, so the frontend doesn't need to know the rules:
-//   pointLabels: ["30", "15"]   tiebreak: false
-function withScoreboard(match) {
-  const score = scoreFromLog(match.pointLog, match.bestOf);
-  return { ...match, pointLabels: pointLabels(score), tiebreak: !score.winner && isTiebreak(score) };
+// Who is serving the next point: 1, 2, or null once the match is over.
+// Normal games: score.server. Tiebreaks: the first point is served by score.server,
+// then serve switches every 2 points (pattern: A, B, B, A, A, B, B, ...).
+function currentServer(score) {
+  if (score.winner) return null;
+  if (!isTiebreak(score)) return score.server;
+
+  const pointsPlayed = score.points[0] + score.points[1];
+  const other = 3 - score.server;
+  if (pointsPlayed === 0) return score.server;
+  return Math.floor((pointsPlayed - 1) / 2) % 2 === 0 ? other : score.server;
 }
 
-module.exports = { newScore, addPoint, scoreFromLog, pointLabels, isTiebreak, setWinner, withScoreboard };
+// Is the next point a big one? We find out by *simulating*: "if this player won the next point,
+// would they win the match / the set / a game on the other player's serve?"
+// Returns e.g. { type: 'match point', player: 1 }, or null for a normal point.
+function bigPoint(score) {
+  if (score.winner) return null;
+
+  const results = [1, 2].map((player) => {
+    const next = addPoint(score, player);
+    if (next.winner) return { type: 'match point', player };
+    if (next.sets.length > score.sets.length) return { type: 'set point', player };
+
+    const wonGame = next.points[0] === 0 && next.points[1] === 0;
+    if (wonGame && !isTiebreak(score) && player !== currentServer(score)) {
+      return { type: 'break point', player };
+    }
+    return null;
+  });
+
+  // Most important first: match point beats set point beats break point
+  const order = ['match point', 'set point', 'break point'];
+  return results
+    .filter(Boolean)
+    .sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type))[0] || null;
+}
+
+// Add scoreboard info to a match from the database, so the frontend doesn't need to know the rules:
+//   pointLabels: ["30", "15"]   tiebreak: false   server: 1   bigPoint: { type: 'break point', player: 2 }
+function withScoreboard(match) {
+  const score = scoreFromLog(match.pointLog, match.bestOf, match.firstServer);
+  return {
+    ...match,
+    pointLabels: pointLabels(score),
+    tiebreak: !score.winner && isTiebreak(score),
+    server: currentServer(score),
+    bigPoint: bigPoint(score),
+  };
+}
+
+module.exports = {
+  newScore, addPoint, scoreFromLog, pointLabels, isTiebreak, setWinner,
+  currentServer, bigPoint, withScoreboard,
+};

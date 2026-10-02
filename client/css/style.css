@@ -1,24 +1,59 @@
-/* ---------- Colours used across the whole site ---------- */
+/* ==========================================================
+   Colours ("design tokens")
+   Every colour on the site comes from these names. Dark is the default;
+   the light theme just gives the same names different values.
+   ========================================================== */
 :root {
-  --green: #1f5130;       /* grass court */
-  --green-dark: #163b23;
-  --ball: #d4e83a;        /* tennis ball */
-  --bg: #f4f6f3;
-  --card: #ffffff;
-  --text: #1c2420;
-  --muted: #66706a;
-  --border: #dde3dd;
-  --red: #c0392b;
-  --live: #e0482f;
+  --bg: #0b0f17;            /* page background */
+  --surface: #141b27;       /* cards */
+  --surface-2: #1c2535;     /* inputs, hover, table headers */
+  --border: #263044;
+  --text: #eef2f8;
+  --muted: #8a95a8;
+  --accent: #d4f03a;        /* tennis-ball yellow */
+  --accent-hover: #e3fa6a;
+  --on-accent: #0b0f17;     /* text on top of the accent colour */
+  --accent-text: #d4f03a;   /* accent-coloured text (darker in light mode so it's readable) */
+  --live: #ff4d3d;
+  --danger: #ff6b5e;
+  --header-bg: rgba(11, 15, 23, 0.85);
+
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --radius: 12px;
+  color-scheme: dark;       /* makes date pickers, scrollbars etc. dark too */
+}
+
+:root[data-theme="light"] {
+  --bg: #f3f5f9;
+  --surface: #ffffff;
+  --surface-2: #eef1f6;
+  --border: #dfe4ec;
+  --text: #0f1420;
+  --muted: #5f6b7e;
+  --accent: #c2e021;
+  --accent-hover: #b0cd12;
+  --on-accent: #0f1420;
+  --accent-text: #5c6e00;
+  --live: #e5382a;
+  --danger: #d33a2c;
+  --header-bg: rgba(255, 255, 255, 0.85);
+  color-scheme: light;
 }
 
 * {
   box-sizing: border-box;
 }
 
+/* Elements with the "hidden" attribute must stay hidden, even if a rule like
+   "display: flex" elsewhere would show them */
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-body);
   background: var(--bg);
   color: var(--text);
   line-height: 1.5;
@@ -26,12 +61,16 @@ body {
 
 /* ---------- Top navigation bar ---------- */
 header {
-  background: var(--green);
-  color: white;
+  position: sticky; /* stays at the top while you scroll */
+  top: 0;
+  z-index: 10;
+  background: var(--header-bg);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
 }
 
 .nav {
-  max-width: 960px;
+  max-width: 1040px;
   margin: 0 auto;
   padding: 0 16px;
   display: flex;
@@ -41,11 +80,18 @@ header {
 }
 
 .logo {
+  font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.2rem;
-  padding: 14px 0;
-  color: white;
+  font-size: 1.5rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 12px 0;
+  color: var(--text);
   text-decoration: none;
+}
+
+.logo span {
+  color: var(--accent-text);
 }
 
 .nav-links {
@@ -56,44 +102,73 @@ header {
 }
 
 .nav-links a {
-  color: #d9e6dc;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
   text-decoration: none;
   padding: 6px 12px;
-  border-radius: 6px;
+  border-bottom: 2px solid transparent;
 }
 
 .nav-links a:hover {
-  background: var(--green-dark);
-  color: white;
+  color: var(--text);
 }
 
 .nav-links a.active {
-  background: var(--ball);
-  color: var(--green-dark);
-  font-weight: 600;
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+.theme-toggle {
+  margin-left: auto;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 1.1rem;
+}
+
+.theme-toggle:hover {
+  background: var(--border);
 }
 
 /* ---------- Page layout ---------- */
 main {
-  max-width: 960px;
+  max-width: 1040px;
   margin: 0 auto;
-  padding: 24px 16px 48px;
+  padding: 32px 16px 64px;
+}
+
+h1,
+h2 {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 h1 {
-  margin: 0 0 16px;
+  font-size: 2.75rem;
+  line-height: 1;
+  margin: 0 0 24px;
 }
 
 h2 {
-  margin: 32px 0 12px;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
+  margin: 36px 0 12px;
+  color: var(--muted);
 }
 
 .card {
-  background: var(--card);
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px;
+  border-radius: var(--radius);
+  padding: 18px;
   margin-bottom: 12px;
 }
 
@@ -103,27 +178,28 @@ h2 {
 
 .empty {
   color: var(--muted);
-  font-style: italic;
 }
 
 .error {
-  color: var(--red);
+  color: var(--danger);
 }
 
-/* ---------- Match cards ---------- */
+/* ---------- Match cards (schedule page) ---------- */
 a.match-card {
   display: block;
   color: inherit;
   text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s;
 }
 
 a.match-card:hover {
-  border-color: var(--green);
+  border-color: var(--accent);
+  transform: translateY(-2px);
 }
 
 .live-points {
-  background: var(--green);
-  color: var(--ball);
+  background: var(--accent);
+  color: var(--on-accent);
   font-weight: 700;
   border-radius: 4px;
   padding: 0 6px;
@@ -134,9 +210,11 @@ a.match-card:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--muted);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .player-row {
@@ -147,7 +225,7 @@ a.match-card:hover {
 }
 
 .player-name {
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .player-country {
@@ -156,7 +234,19 @@ a.match-card:hover {
 
 .player-row.winner .player-name::after {
   content: " ✓";
-  color: var(--green);
+  color: var(--accent-text);
+}
+
+/* Small tennis-ball dot before the name of whoever is serving */
+.player-row.serving .player-name::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  vertical-align: middle;
 }
 
 .player-row.winner {
@@ -166,7 +256,10 @@ a.match-card:hover {
 .sets {
   margin-left: auto; /* push the scores to the right */
   display: flex;
-  gap: 12px;
+  gap: 14px;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
@@ -177,56 +270,80 @@ a.match-card:hover {
 
 .match-time {
   font-size: 0.85rem;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
+/* ---------- Badges ---------- */
 .badge {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 9px;
   border-radius: 999px;
-  background: #e8eee9;
-  color: var(--green);
+  background: var(--surface-2);
+  color: var(--muted);
 }
 
 .badge.live {
   background: var(--live);
-  color: white;
+  color: #ffffff;
+}
+
+.badge.big {
+  background: transparent;
+  color: var(--live);
+  border: 1px solid var(--live);
+  margin-right: 4px;
 }
 
 .badge.done {
   background: var(--text);
-  color: white;
+  color: var(--bg);
 }
 
 /* ---------- Forms ---------- */
 form {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
   align-items: end;
 }
 
 label {
   display: flex;
   flex-direction: column;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--muted);
-  gap: 4px;
+  gap: 6px;
 }
 
 input,
 select {
   font: inherit;
-  padding: 8px 10px;
+  font-size: 0.95rem;
+  text-transform: none;
+  letter-spacing: normal;
+  height: 42px;
+  padding: 0 12px;
   border: 1px solid var(--border);
-  border-radius: 6px;
-  background: white;
+  border-radius: 8px;
+  background: var(--surface-2);
   color: var(--text);
 }
 
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
 .form-title {
-  margin: 0 0 12px;
+  margin: 0 0 16px;
+  color: var(--text);
 }
 
 .form-buttons {
@@ -240,44 +357,165 @@ select {
 
 /* ---------- Live score page ---------- */
 .back-link {
-  color: var(--green);
+  color: var(--muted);
   text-decoration: none;
+  font-size: 0.9rem;
 }
 
-.scoreboard {
-  font-size: 1.25rem;
+.back-link:hover {
+  color: var(--accent-text);
 }
 
-.scoreboard th {
-  text-align: center;
+/* The broadcast scoreboard stays dark in both themes, like a TV graphic */
+.broadcast {
+  background: #0d1320;
+  color: #ffffff;
+  border: 1px solid #263044;
+  border-radius: var(--radius);
+  overflow: hidden;
+  font-family: var(--font-display);
 }
 
-.scoreboard .sb-name {
-  width: 100%;
-  font-weight: 600;
+.bc-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: #151d2e;
+  color: #8a95a8;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.scoreboard .sb-name .muted {
-  font-size: 0.85rem;
-  font-weight: 400;
+.bc-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px 10px 14px;
+  border-top: 1px solid #1e2738;
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+/* The serve dot: an empty space for the receiver, a tennis ball for the server */
+.bc-serve {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bc-serve.on {
+  background: #d4f03a;
+  box-shadow: 0 0 10px rgba(212, 240, 58, 0.6);
+}
+
+.bc-name {
+  flex: 1;
+  min-width: 0;
   margin-left: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.scoreboard .games {
+.bc-name small {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #8a95a8;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 8px;
+}
+
+.bc-check {
+  color: #d4f03a;
+}
+
+.bc-row.winner .bc-name {
+  color: #d4f03a;
+}
+
+.bc-set {
+  width: 44px;
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
 
-.scoreboard .points {
-  text-align: center;
-  font-weight: 700;
-  background: var(--green);
-  color: var(--ball);
-  min-width: 3em;
+.bc-set.lost {
+  color: #5d6880;
 }
 
-.scoreboard tr.winner {
-  font-weight: 700;
+.bc-set.current {
+  background: #1e2738;
+  border-radius: 6px;
+}
+
+.bc-points {
+  width: 68px;
+  margin-left: 8px;
+  padding: 4px 0;
+  text-align: center;
+  background: #d4f03a;
+  color: #0b0f17;
+  border-radius: 6px;
+}
+
+/* Strip under the board: "Break point · Rybakina", "Deuce", "Tiebreak" ... */
+.bc-strip {
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 1.1rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  background: #1e2738;
+  color: #d4f03a;
+}
+
+.bc-strip.big {
+  background: #ff4d3d;
+  color: #ffffff;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.75;
+  }
+}
+
+.bc-time {
+  margin: 8px 2px 20px;
+  font-size: 0.85rem;
+}
+
+.serve-choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+/* On phones, make the scoreboard a bit smaller so long names fit */
+@media (max-width: 520px) {
+  .bc-row {
+    font-size: 1.4rem;
+  }
+  .bc-set {
+    width: 30px;
+  }
+  .bc-points {
+    width: 52px;
+  }
+  .bc-name small {
+    display: none;
+  }
 }
 
 .point-buttons {
@@ -288,9 +526,11 @@ select {
 }
 
 .point-button {
-  padding: 24px 12px; /* big and easy to tap */
-  font-size: 1.1rem;
-  font-weight: 600;
+  padding: 26px 12px; /* big and easy to tap */
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 button:disabled {
@@ -305,23 +545,32 @@ button:disabled {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+}
+
+.card-header strong {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-right: 6px;
 }
 
 .chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #e8eee9;
-  color: var(--green-dark);
-  padding: 2px 4px 2px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 3px 4px 3px 12px;
   border-radius: 999px;
   font-size: 0.9rem;
 }
@@ -335,7 +584,7 @@ button:disabled {
 
 .chip-remove:hover {
   background: transparent;
-  color: var(--red);
+  color: var(--danger);
 }
 
 .link-row {
@@ -357,15 +606,22 @@ table {
 th,
 td {
   text-align: left;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 
 th {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--muted);
-  font-weight: 600;
+  background: var(--surface-2);
+}
+
+tbody tr:hover td {
+  background: var(--surface-2);
 }
 
 tbody tr:last-child td {
@@ -383,43 +639,54 @@ td.actions button + button {
 /* ---------- Buttons ---------- */
 button {
   font: inherit;
-  padding: 8px 14px;
+  font-weight: 600;
+  padding: 10px 16px;
   border: none;
-  border-radius: 6px;
-  background: var(--green);
-  color: white;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--on-accent);
   cursor: pointer;
+  transition: background 0.15s;
 }
 
 button:hover {
-  background: var(--green-dark);
+  background: var(--accent-hover);
 }
 
 button.secondary {
   background: transparent;
-  color: var(--green);
+  color: var(--text);
   border: 1px solid var(--border);
+}
+
+button.secondary:hover {
+  background: var(--surface-2);
 }
 
 button.danger {
   background: transparent;
-  color: var(--red);
+  color: var(--danger);
   border: 1px solid var(--border);
 }
 
-/* A link that looks like a small green button */
+button.danger:hover {
+  background: var(--surface-2);
+}
+
+/* A link that looks like a small accent button */
 .button-link {
   display: inline-block;
-  padding: 4px 10px;
+  padding: 5px 10px;
   font-size: 0.85rem;
-  border-radius: 6px;
-  background: var(--green);
-  color: white;
+  font-weight: 600;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--on-accent);
   text-decoration: none;
   margin-right: 4px;
 }
 
 button.small {
-  padding: 4px 10px;
+  padding: 5px 10px;
   font-size: 0.85rem;
 }
