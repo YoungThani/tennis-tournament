@@ -61,6 +61,79 @@ function setupThemeToggle() {
 
 setupThemeToggle();
 
+// ---------- Countries, flags and avatars ----------
+// (COUNTRIES comes from countries.js, which each page loads before this file)
+
+// Find a country by its code: findCountry('KZ') → { code: 'KZ', name: 'Kazakhstan', ioc: 'KAZ' }
+function findCountry(code) {
+  return COUNTRIES.find((c) => c.code === code);
+}
+
+// A small flag image, e.g. flag('PL'). Images come from flagcdn.com, a free flag service.
+function flag(code) {
+  if (!findCountry(code)) return ''; // unknown country: no flag
+  return `<img class="flag" src="https://flagcdn.com/${code.toLowerCase()}.svg" alt="" loading="lazy">`;
+}
+
+// Full country name for a code ("PL" → "Poland"), or the text itself if it isn't a known code
+function countryName(code) {
+  return findCountry(code)?.name ?? code ?? '';
+}
+
+// 3-letter scoreboard code ("PL" → "POL")
+function countryIoc(code) {
+  return findCountry(code)?.ioc ?? code ?? '';
+}
+
+// The <option>s for a country dropdown, with the current one selected
+function countryOptions(selected) {
+  return COUNTRIES
+    .map((c) => `<option value="${c.code}" ${c.code === selected ? 'selected' : ''}>${escapeHtml(c.name)}</option>`)
+    .join('');
+}
+
+// A round avatar with the person's initials ("Iga Swiatek" → "IS").
+// The colour is worked out from the name, so the same person always gets the same colour.
+function avatar(name) {
+  const initials = name.split(' ').filter(Boolean).map((word) => word[0]).slice(0, 2).join('').toUpperCase();
+  let hue = 0;
+  for (const letter of name) hue = (hue * 31 + letter.charCodeAt(0)) % 360;
+  return `<span class="avatar" style="--hue: ${hue}">${escapeHtml(initials)}</span>`;
+}
+
+// Some people turn on "reduce motion" in their phone/computer settings. We respect that.
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------- Slide-in on scroll ----------
+// Call after a page first shows its data. Cards and table rows start hidden and slide up
+// into place as they scroll into view. It only runs once per page, so the schedule's
+// auto-refresh doesn't make everything slide in again every 5 seconds.
+function revealOnScroll(container) {
+  if (reduceMotion || container.dataset.revealed) return;
+  container.dataset.revealed = 'yes';
+
+  // IntersectionObserver tells us when an element scrolls into view
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      el.classList.add('reveal-in');
+      observer.unobserve(el);
+      // Once it has arrived, remove the helper classes so hover effects work normally
+      setTimeout(() => {
+        el.classList.remove('reveal', 'reveal-in');
+        el.style.transitionDelay = '';
+      }, 1200);
+    });
+  }, { threshold: 0.1 });
+
+  container.querySelectorAll('.card, .broadcast, tbody tr').forEach((el, i) => {
+    el.classList.add('reveal');
+    el.style.transitionDelay = `${Math.min(i, 8) * 70}ms`; // a little stagger: one after another
+    observer.observe(el);
+  });
+}
+
 // Turn "2026-10-03T12:30:00.000Z" into something readable in the user's own timezone, e.g. "Sat 3 Oct, 6:00 pm"
 function formatDate(isoString) {
   return new Date(isoString).toLocaleString(undefined, {

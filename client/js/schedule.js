@@ -7,8 +7,9 @@ function playerRow(player, games, isWinner, pointLabel, isServing) {
   const points = pointLabel !== undefined ? `<span class="set live-points">${pointLabel}</span>` : '';
   return `
     <div class="player-row ${isWinner ? 'winner' : ''} ${isServing ? 'serving' : ''}">
+      ${flag(player.country)}
       <span class="player-name">${escapeHtml(player.name)}</span>
-      <span class="player-country muted">${escapeHtml(player.country)}</span>
+      <span class="player-country muted">${escapeHtml(countryIoc(player.country))}</span>
       <span class="sets">${scores}${points}</span>
     </div>
   `;
@@ -67,6 +68,7 @@ async function loadSchedule() {
     showMatches('live', schedule.live, '');
     showMatches('upcoming', schedule.upcoming, 'No upcoming matches.');
     showMatches('past', schedule.past, 'No matches played yet.');
+    revealOnScroll(document.querySelector('main'));
   } catch (err) {
     document.getElementById('upcoming').innerHTML = `<p class="error">Could not load the schedule: ${escapeHtml(err.message)}</p>`;
   }

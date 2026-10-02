@@ -36,7 +36,7 @@
           <input name="name" required placeholder="e.g. Tomasz Wiktorowski">
         </label>
         <label>Country
-          <input name="country" placeholder="e.g. Poland">
+          <select name="country"></select>
         </label>
         <div class="form-buttons">
           <button type="submit" id="submit-button">Add coach</button>
@@ -47,10 +47,12 @@
     </div>
 
     <div id="coaches-list">
-      <p class="muted">Loading...</p>
+      <div class="card skeleton" style="height: 140px"></div>
+      <div class="card skeleton" style="height: 140px"></div>
     </div>
   </main>
 
+  <script src="/js/countries.js"></script>
   <script src="/js/common.js"></script>
   <script src="/js/coaches.js"></script>
 </body>

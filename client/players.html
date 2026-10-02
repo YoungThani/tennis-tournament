@@ -36,7 +36,7 @@
           <input name="name" required placeholder="e.g. Iga Swiatek">
         </label>
         <label>Country *
-          <input name="country" required placeholder="e.g. Poland">
+          <select name="country" required></select>
         </label>
         <label>Ranking
           <input name="ranking" type="number" min="1">
@@ -73,12 +73,15 @@
           </tr>
         </thead>
         <tbody id="players-body">
-          <tr><td colspan="7" class="muted">Loading...</td></tr>
+          <tr><td colspan="7"><div class="skeleton-line"></div></td></tr>
+          <tr><td colspan="7"><div class="skeleton-line"></div></td></tr>
+          <tr><td colspan="7"><div class="skeleton-line"></div></td></tr>
         </tbody>
       </table>
     </div>
   </main>
 
+  <script src="/js/countries.js"></script>
   <script src="/js/common.js"></script>
   <script src="/js/players.js"></script>
 </body>

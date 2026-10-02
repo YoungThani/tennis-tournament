@@ -28,8 +28,8 @@ function showPlayers() {
   tbody.innerHTML = players.map((p) => `
     <tr>
       <td>${p.ranking ?? '<span class="muted">–</span>'}</td>
-      <td><strong>${escapeHtml(p.name)}</strong></td>
-      <td>${escapeHtml(p.country)}</td>
+      <td><span class="person">${avatar(p.name)}<strong>${escapeHtml(p.name)}</strong></span></td>
+      <td>${flag(p.country)} ${escapeHtml(countryName(p.country))}</td>
       <td>${p.age ?? ''}</td>
       <td>${escapeHtml(PLAYS_LABELS[p.plays] || p.plays || '')}</td>
       <td class="muted">${p.coaches.map((c) => escapeHtml(c.name)).join(', ')}</td>
@@ -45,6 +45,7 @@ async function loadPlayers() {
   try {
     players = await api('GET', '/api/players');
     showPlayers();
+    revealOnScroll(document.querySelector('main'));
   } catch (err) {
     document.getElementById('players-body').innerHTML =
       `<tr><td colspan="7" class="error">Could not load players: ${escapeHtml(err.message)}</td></tr>`;
@@ -57,7 +58,7 @@ function startEdit(id) {
   editingId = id;
 
   fields.name.value = player.name;
-  fields.country.value = player.country;
+  fields.country.innerHTML = '<option value="">Choose a country</option>' + countryOptions(player.country);
   fields.ranking.value = player.ranking ?? '';
   fields.age.value = player.age ?? '';
   fields.plays.value = player.plays ?? '';
@@ -73,6 +74,7 @@ function startEdit(id) {
 function resetForm() {
   editingId = null;
   form.reset();
+  fields.country.innerHTML = '<option value="">Choose a country</option>' + countryOptions('');
   formTitle.textContent = 'Add a player';
   submitButton.textContent = 'Add player';
   cancelButton.hidden = true;
@@ -85,7 +87,7 @@ form.addEventListener('submit', async (event) => {
 
   const data = {
     name: fields.name.value.trim(),
-    country: fields.country.value.trim(),
+    country: fields.country.value,
     ranking: toNumberOrNull(fields.ranking.value),
     age: toNumberOrNull(fields.age.value),
     plays: fields.plays.value || null,
@@ -119,4 +121,5 @@ async function deletePlayer(id) {
   }
 }
 
+resetForm(); // fills the country dropdown
 loadPlayers();

@@ -1,5 +1,12 @@
 const express = require('express');
 const prisma = require('../db');
+// The same country list the browser uses (client/js/countries.js)
+const COUNTRIES = require('../../client/js/countries');
+
+// Is this a country code from our list, like "KZ"?
+function isValidCountry(code) {
+  return COUNTRIES.some((c) => c.code === code);
+}
 
 const router = express.Router();
 
@@ -37,12 +44,18 @@ router.post('/', async (req, res) => {
   if (!req.body.name) {
     return res.status(400).json({ error: 'Name is required' });
   }
+  if (req.body.country && !isValidCountry(req.body.country)) {
+    return res.status(400).json({ error: 'Choose a country from the list' });
+  }
   const coach = await prisma.coach.create({ data: coachData(req.body) });
   res.status(201).json(coach);
 });
 
 // PUT /api/coaches/:id → update a coach
 router.put('/:id', async (req, res) => {
+  if (req.body.country && !isValidCountry(req.body.country)) {
+    return res.status(400).json({ error: 'Choose a country from the list' });
+  }
   try {
     const coach = await prisma.coach.update({
       where: { id: Number(req.params.id) },

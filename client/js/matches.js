@@ -28,7 +28,7 @@ function toLocalInputValue(isoString) {
 // Fill both player dropdowns with every player
 function showPlayerOptions() {
   const options = players
-    .map((p) => `<option value="${p.id}">${escapeHtml(p.name)} (${escapeHtml(p.country)})</option>`)
+    .map((p) => `<option value="${p.id}">${escapeHtml(p.name)} (${escapeHtml(countryIoc(p.country))})</option>`)
     .join('');
   fields.player1Id.innerHTML = '<option value="">Choose player 1</option>' + options;
   fields.player2Id.innerHTML = '<option value="">Choose player 2</option>' + options;
@@ -47,7 +47,7 @@ function showMatches() {
       <td>${formatDate(m.scheduledAt)}</td>
       <td>${escapeHtml(m.round)}</td>
       <td>${escapeHtml(m.court)}</td>
-      <td><strong>${escapeHtml(m.player1.name)}</strong> vs <strong>${escapeHtml(m.player2.name)}</strong></td>
+      <td>${flag(m.player1.country)} <strong>${escapeHtml(m.player1.name)}</strong> vs ${flag(m.player2.country)} <strong>${escapeHtml(m.player2.name)}</strong></td>
       <td><span class="badge ${m.status === 'in_progress' ? 'live' : ''} ${m.status === 'completed' ? 'done' : ''}">${STATUS_LABELS[m.status]}</span></td>
       <td class="actions">
         <a class="button-link" href="/score.html?id=${m.id}">Score</a>
@@ -62,6 +62,7 @@ async function loadMatches() {
   try {
     matches = await api('GET', '/api/matches');
     showMatches();
+    revealOnScroll(document.querySelector('main'));
   } catch (err) {
     document.getElementById('matches-body').innerHTML =
       `<tr><td colspan="6" class="error">Could not load matches: ${escapeHtml(err.message)}</td></tr>`;

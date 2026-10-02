@@ -17,6 +17,9 @@
   --live: #ff4d3d;
   --danger: #ff6b5e;
   --header-bg: rgba(11, 15, 23, 0.85);
+  --court-lines: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20400%20820%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%223%22%3E%20%3Crect%20x%3D%2220%22%20y%3D%2220%22%20width%3D%22360%22%20height%3D%22780%22/%3E%20%3Cline%20x1%3D%2265%22%20y1%3D%2220%22%20x2%3D%2265%22%20y2%3D%22800%22/%3E%3Cline%20x1%3D%22335%22%20y1%3D%2220%22%20x2%3D%22335%22%20y2%3D%22800%22/%3E%20%3Cline%20x1%3D%225%22%20y1%3D%22410%22%20x2%3D%22395%22%20y2%3D%22410%22%20stroke-width%3D%225%22/%3E%20%3Cline%20x1%3D%2265%22%20y1%3D%22200%22%20x2%3D%22335%22%20y2%3D%22200%22/%3E%3Cline%20x1%3D%2265%22%20y1%3D%22620%22%20x2%3D%22335%22%20y2%3D%22620%22/%3E%20%3Cline%20x1%3D%22200%22%20y1%3D%22200%22%20x2%3D%22200%22%20y2%3D%22620%22/%3E%20%3Cline%20x1%3D%22200%22%20y1%3D%2220%22%20x2%3D%22200%22%20y2%3D%2232%22/%3E%3Cline%20x1%3D%22200%22%20y1%3D%22788%22%20x2%3D%22200%22%20y2%3D%22800%22/%3E%20%3C/svg%3E");
+  --court-opacity: 0.045;
+  --glow: rgba(212, 240, 58, 0.07);
 
   --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
@@ -38,6 +41,9 @@
   --live: #e5382a;
   --danger: #d33a2c;
   --header-bg: rgba(255, 255, 255, 0.85);
+  --court-lines: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20400%20820%22%20fill%3D%22none%22%20stroke%3D%22%230f1420%22%20stroke-width%3D%223%22%3E%20%3Crect%20x%3D%2220%22%20y%3D%2220%22%20width%3D%22360%22%20height%3D%22780%22/%3E%20%3Cline%20x1%3D%2265%22%20y1%3D%2220%22%20x2%3D%2265%22%20y2%3D%22800%22/%3E%3Cline%20x1%3D%22335%22%20y1%3D%2220%22%20x2%3D%22335%22%20y2%3D%22800%22/%3E%20%3Cline%20x1%3D%225%22%20y1%3D%22410%22%20x2%3D%22395%22%20y2%3D%22410%22%20stroke-width%3D%225%22/%3E%20%3Cline%20x1%3D%2265%22%20y1%3D%22200%22%20x2%3D%22335%22%20y2%3D%22200%22/%3E%3Cline%20x1%3D%2265%22%20y1%3D%22620%22%20x2%3D%22335%22%20y2%3D%22620%22/%3E%20%3Cline%20x1%3D%22200%22%20y1%3D%22200%22%20x2%3D%22200%22%20y2%3D%22620%22/%3E%20%3Cline%20x1%3D%22200%22%20y1%3D%2220%22%20x2%3D%22200%22%20y2%3D%2232%22/%3E%3Cline%20x1%3D%22200%22%20y1%3D%22788%22%20x2%3D%22200%22%20y2%3D%22800%22/%3E%20%3C/svg%3E");
+  --court-opacity: 0.05;
+  --glow: rgba(194, 224, 33, 0.12);
   color-scheme: light;
 }
 
@@ -54,7 +60,9 @@
 body {
   margin: 0;
   font-family: var(--font-body);
-  background: var(--bg);
+  /* a soft tennis-ball glow at the top of the page, on top of the plain background */
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, var(--glow), transparent) no-repeat, var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   line-height: 1.5;
 }
@@ -689,4 +697,118 @@ button.danger:hover {
 button.small {
   padding: 5px 10px;
   font-size: 0.85rem;
+}
+
+/* ==========================================================
+   Background: faint tennis court lines behind everything
+   ========================================================== */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none; /* never block clicks */
+  background: var(--court-lines) center / auto 130vh no-repeat;
+  opacity: var(--court-opacity);
+}
+
+/* ==========================================================
+   Slide-in on scroll (see revealOnScroll in common.js)
+   ========================================================== */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.reveal.reveal-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ==========================================================
+   Loading placeholders that shimmer while data is on its way
+   ========================================================== */
+.skeleton,
+.skeleton-line {
+  background: linear-gradient(90deg, var(--surface) 0%, var(--surface-2) 50%, var(--surface) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-line {
+  height: 14px;
+  border-radius: 7px;
+  width: 70%;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+/* ==========================================================
+   "Reduce motion": switch animations off for people who asked for that
+   ========================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Confetti canvas covers the page but lets clicks through */
+.confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+}
+
+/* ==========================================================
+   Flags and avatars
+   ========================================================== */
+.flag {
+  width: 20px;
+  height: 14px;
+  object-fit: cover;
+  border-radius: 2px;
+  vertical-align: -2px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25); /* thin edge so white flags don't disappear */
+}
+
+/* Bigger flags on the TV scoreboard */
+.bc-row .flag {
+  width: 30px;
+  height: 21px;
+  margin-left: 4px;
+}
+
+/* Avatar: a circle with initials. --hue is set per person in common.js → avatar() */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: hsl(var(--hue) 55% 40%);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* Avatar + name side by side */
+.person {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
 }

@@ -16,7 +16,7 @@ function coachCard(coach) {
   // Players already linked, each with a ✕ button to unlink
   const linked = coach.players.map((p) => `
     <span class="chip">
-      ${escapeHtml(p.name)}
+      ${flag(p.country)} ${escapeHtml(p.name)}
       <button class="chip-remove" title="Unlink" onclick="unlinkPlayer(${coach.id}, ${p.id})">✕</button>
     </span>
   `).join('');
@@ -32,8 +32,11 @@ function coachCard(coach) {
     <div class="card">
       <div class="card-header">
         <div>
-          <strong>${escapeHtml(coach.name)}</strong>
-          <span class="muted">${escapeHtml(coach.country || '')}</span>
+          <span class="person">
+            ${avatar(coach.name)}
+            <strong>${escapeHtml(coach.name)}</strong>
+            ${coach.country ? `${flag(coach.country)} <span class="muted">${escapeHtml(countryName(coach.country))}</span>` : ''}
+          </span>
         </div>
         <div>
           <button class="small secondary" onclick="startEdit(${coach.id})">Edit</button>
@@ -69,6 +72,7 @@ async function loadCoaches() {
     coaches = await api('GET', '/api/coaches');
     players = await api('GET', '/api/players');
     showCoaches();
+    revealOnScroll(document.querySelector('main'));
   } catch (err) {
     document.getElementById('coaches-list').innerHTML =
       `<p class="error">Could not load coaches: ${escapeHtml(err.message)}</p>`;
@@ -103,7 +107,7 @@ function startEdit(id) {
   editingId = id;
 
   fields.name.value = coach.name;
-  fields.country.value = coach.country ?? '';
+  fields.country.innerHTML = '<option value="">No country</option>' + countryOptions(coach.country);
 
   formTitle.textContent = `Edit ${coach.name}`;
   submitButton.textContent = 'Save changes';
@@ -115,6 +119,7 @@ function startEdit(id) {
 function resetForm() {
   editingId = null;
   form.reset();
+  fields.country.innerHTML = '<option value="">No country</option>' + countryOptions('');
   formTitle.textContent = 'Add a coach';
   submitButton.textContent = 'Add coach';
   cancelButton.hidden = true;
@@ -126,7 +131,7 @@ form.addEventListener('submit', async (event) => {
 
   const data = {
     name: fields.name.value.trim(),
-    country: fields.country.value.trim() || null,
+    country: fields.country.value || null,
   };
 
   try {
@@ -157,4 +162,5 @@ async function deleteCoach(id) {
   }
 }
 
+resetForm(); // fills the country dropdown
 loadCoaches();

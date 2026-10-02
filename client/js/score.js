@@ -25,9 +25,10 @@ function boardRow(player, playerNumber, sets) {
   return `
     <div class="bc-row ${isWinner ? 'winner' : ''}">
       <span class="bc-serve ${isServing ? 'on' : ''}" title="${isServing ? 'Serving' : ''}"></span>
+      ${flag(player.country)}
       <span class="bc-name">
         ${escapeHtml(player.name)}${isWinner ? ' <span class="bc-check">✓</span>' : ''}
-        <small>${escapeHtml(player.country)}</small>
+        <small>${escapeHtml(countryIoc(player.country))}</small>
       </span>
       ${setBoxes}
       ${isLive ? `<span class="bc-points">${match.pointLabels[playerNumber - 1]}</span>` : ''}
@@ -93,12 +94,69 @@ function showScoreboard() {
   document.getElementById('undo').disabled = match.pointLog === '';
 }
 
+// Store the newest match from the server and redraw. If the match has *just* finished
+// (it was being played a moment ago and now it's over), celebrate!
+function updateMatch(newMatch) {
+  const justFinished = match && match.status !== 'completed' && newMatch.status === 'completed' && newMatch.winner;
+  match = newMatch;
+  showScoreboard();
+  if (justFinished) confetti();
+}
+
+// ---------- Confetti ----------
+// Draws ~160 little pieces of paper on a see-through canvas over the page, lets them fall
+// for a few seconds, then removes the canvas. No library needed.
+function confetti() {
+  if (reduceMotion) return;
+
+  const canvas = document.createElement('canvas');
+  canvas.className = 'confetti';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+
+  const colours = ['#d4f03a', '#ffffff', '#ff4d3d', '#3dd6ff'];
+  const pieces = Array.from({ length: 160 }, () => ({
+    x: canvas.width / 2 + (Math.random() - 0.5) * 200,  // start near the middle...
+    y: canvas.height / 3,
+    vx: (Math.random() - 0.5) * 16,                     // ...and burst outwards
+    vy: Math.random() * -14 - 4,
+    size: Math.random() * 6 + 5,
+    spin: Math.random() * Math.PI,
+    colour: colours[Math.floor(Math.random() * colours.length)],
+  }));
+
+  const start = performance.now();
+  function frame(now) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach((p) => {
+      p.vy += 0.35;   // gravity pulls it down
+      p.vx *= 0.99;   // air slows it a little
+      p.x += p.vx;
+      p.y += p.vy;
+      p.spin += 0.15;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.spin);
+      ctx.fillStyle = p.colour;
+      ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+      ctx.restore();
+    });
+    if (now - start < 4000) requestAnimationFrame(frame);
+    else canvas.remove();
+  }
+  requestAnimationFrame(frame);
+}
+
 async function loadMatch() {
   try {
-    match = await api('GET', `/api/matches/${matchId}`);
-    showScoreboard();
+    updateMatch(await api('GET', `/api/matches/${matchId}`));
+    revealOnScroll(document.querySelector('main'));
   } catch (err) {
     document.getElementById('scoreboard').innerHTML = `<p class="error">${escapeHtml(err.message)}</p>`;
+    // If the match was deleted, stop asking the server about it every 3 seconds
+    if (err.message === 'Match not found') clearInterval(refreshTimer);
   }
 }
 
@@ -108,11 +166,11 @@ async function sendScore(url, body) {
   // Switch the buttons off while saving, so a fast double-click can't send two points at once
   controls.querySelectorAll('button').forEach((b) => (b.disabled = true));
   try {
-    match = await api('POST', url, body);
+    updateMatch(await api('POST', url, body));
   } catch (err) {
     errorLine.textContent = err.message;
+    showScoreboard(); // switch the buttons back on
   }
-  showScoreboard(); // also switches the buttons back on
 }
 
 document.getElementById('point1').addEventListener('click', () => sendScore(`/api/matches/${matchId}/point`, { player: 1 }));
@@ -135,4 +193,4 @@ document.getElementById('serve2').addEventListener('click', () => chooseServer(2
 loadMatch();
 
 // Check for new points every 3 seconds, so anyone else watching this page sees the score change
-setInterval(loadMatch, 3000);
+const refreshTimer = setInterval(loadMatch, 3000);
